@@ -4,18 +4,22 @@ import streamlit as st
 from dotenv import load_dotenv
 from openai import OpenAI
 
+if "history" not in st.session_state:
+    st.session_state.history = []
+
 
 # -----------------------------
 # Load environment variables
 # -----------------------------
 load_dotenv()
 
-DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 client = OpenAI(
-    api_key=DEEPSEEK_API_KEY,
-    base_url="https://api.deepseek.com",
+    api_key=GEMINI_API_KEY,
+    base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
 )
+
 
 
 # -----------------------------
@@ -198,7 +202,7 @@ Write 3-5 natural Burmese sentences for Myanmar buyers/renters.
 Write 3-5 professional English sentences.
 
 ## 4. Facebook Post
-Write a short Facebook-style post. Friendly, clear, not too many emojis.
+Write a Facebook-style post. Friendly, clear, casual but professional. Use emojis if it fits.
 
 ## 5. Key Selling Points
 Give 5 short bullet points.
@@ -210,27 +214,28 @@ Use this tone: {tone}
 
 
 def generate_description(prompt):
-    if not DEEPSEEK_API_KEY:
+    if not GEMINI_API_KEY:
         return """
-ERROR: DEEPSEEK_API_KEY is missing.
+ERROR: GEMINI_API_KEY is missing.
+
 
 Fix:
 1. Create a .env file in the same folder as app.py
 2. Add this line:
-   DEEPSEEK_API_KEY=your_deepseek_api_key_here
+   GEMINI_API_KEY=your_gemini_api_key_here
 3. Save the file
 4. Restart Streamlit
 """.strip()
 
     try:
         response = client.chat.completions.create(
-            model="deepseek-chat",
+            model= "gemini-3.1-flash-lite",
             messages=[
                 {
                     "role": "system",
                     "content": (
-                        "You are a helpful real estate marketing assistant. "
-                        "You are excellent at Burmese and English property descriptions."
+                        "You are a senior real estate marketing assistant specializing in crafting natural, engaging property descriptions in both Burmese and English."
+                        "You leverage deep Myanmar market insights to attract buyers and renters while strictly adhering to provided details."
                     ),
                 },
                 {
@@ -238,7 +243,7 @@ Fix:
                     "content": prompt,
                 },
             ],
-            temperature=0.8,
+            temperature=0.7,
             max_tokens=2000,
         )
 
@@ -416,13 +421,21 @@ if generate_button:
     )
 
     st.markdown(generated_text)
+    st.session_state.history.append(generated_text)
 
     st.download_button(
-        label="⬇️ Download Description",
+        label="⬇️Download Description",
         data=generated_text,
         file_name="property_description.txt",
-        mime="text/plain",
-    )
+        mime="text/plain"
+        )
 
-    #with st.expander("View prompt sent to AI"):
-    #    st.code(prompt)
+st.subheader("Previous Descriptions")
+
+for i, item in enumerate(reversed(st.session_state.history)):
+    with st.expander(f"Description {i + 1}"):
+        st.write(item)
+
+if st.button("Clear History"):
+    st.session_state.history = []
+    st.success("History cleared.")
