@@ -1,7 +1,6 @@
 import os
-
-import streamlit as st
 from dotenv import load_dotenv
+import streamlit as st
 from openai import OpenAI
 
 if "history" not in st.session_state:
@@ -11,9 +10,13 @@ if "history" not in st.session_state:
 # -----------------------------
 # Load environment variables
 # -----------------------------
+
 load_dotenv()
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+#try:
+GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
+#except Exception:
+    #GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 client = OpenAI(
     api_key=GEMINI_API_KEY,
