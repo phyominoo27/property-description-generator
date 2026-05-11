@@ -13,10 +13,10 @@ if "history" not in st.session_state:
 
 load_dotenv()
 
-#try:
-GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
-#except Exception:
-    #GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+try:
+    GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
+except Exception:
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 client = OpenAI(
     api_key=GEMINI_API_KEY,
@@ -163,6 +163,7 @@ def build_prompt(
     bathrooms,
     area,
     price,
+    contact_phone,
     special_features,
     language_style,
     tone,
@@ -181,6 +182,8 @@ Important requirements:
 - Keep the English professional and clear.
 - Do not invent missing facts.
 - If some details are missing, write around them naturally.
+- If contact phone is provided, include it clearly in the Facebook post call-to-action.
+-  Do not use placeholder text like [Your Phone Number].
 
 Property details:
 - Property type: {property_type}
@@ -189,6 +192,7 @@ Property details:
 - Bathrooms: {bathrooms}
 - Area: {area}
 - Price: {price}
+- Contact phone: {contact_phone if contact_phone else "Not provided"}
 - Special features: {special_features}
 - Language style requested: {language_style}
 - Tone requested: {tone}
@@ -322,6 +326,11 @@ with col1:
         step=1,
     )
 
+    contact_phone = st.text_input(
+        "Contact phone / ဆက်သွယ်ရန်ဖုန်း",
+        placeholder="Example: 09xxxxxxxxx",
+    )
+
 with col2:
     area = st.text_input(
         "Area / အကျယ်အဝန်း",
@@ -334,6 +343,7 @@ with col2:
         value="2500 lakh MMK",
         placeholder="Example: 2500 lakh MMK / ၂၅၀၀ သိန်း",
 )
+    
 
     language_style = st.selectbox(
         "Language style / ဘာသာစကားပုံစံ",
@@ -391,6 +401,7 @@ st.markdown(
         <strong>Bathrooms / ရေချိုးခန်း:</strong> {bathrooms}<br>
         <strong>Area / အကျယ်အဝန်း:</strong> {area}<br>
         <strong>Price / ဈေးနှုန်း:</strong> {price}<br>
+        <strong>Contact phone / ဆက်သွယ်ရန်ဖုန်း:</strong> {contact_phone if contact_phone else "Not provided"}<br>
         <strong>Features / ထူးခြားချက်များ:</strong> {special_features}<br>
         <strong>Style / ပုံစံ:</strong> {language_style} · {tone}
     </div>
@@ -410,6 +421,7 @@ if generate_button:
         bathrooms=bathrooms,
         area=area,
         price=price,
+        contact_phone=contact_phone,
         special_features=special_features,
         language_style=language_style,
         tone=tone,
